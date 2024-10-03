@@ -1,0 +1,139 @@
+name: Release
+
+on:
+    push:
+        branches:
+            - main
+
+jobs:
+    test:
+        runs-on: ubuntu-latest
+
+        steps:
+          - name: Checkout repository
+            uses: actions/checkout@v4.2.0
+
+    release-windows:
+        needs: [test]
+        strategy:
+            fail-fast: true
+            matrix:
+                settings:
+                    -   host: windows-latest
+                        target: x86_64-pc-windows-msvc
+        runs-on: ${{ matrix.settings.host }}
+        steps:
+            -   name: Checkout repository
+                uses: actions/checkout@v4.2.0
+            -   name: Install Rust
+                uses: dtolnay/rust-toolchain@stable
+            -   name: Install NodeJS
+                uses: actions/setup-node@v4.0.4
+                with:
+                    node-version: 18
+            -   name: Install Project-Dependencies
+                run: npm install
+            -   name: Build Project
+                run: npm run build
+            -   name: Publish Release Artifacts
+                uses: actions/upload-artifact@v4.4.0
+                with:
+                    name: windows
+                    path: D:\a\tauri-test-v2\tauri-test-v2\src-tauri\target\release\app.exe
+
+    release-linux:
+        needs: [test]
+        strategy:
+            fail-fast: true
+            matrix:
+                settings:
+                    -   host: ubuntu-latest
+                        target: x86_64-unknown-linux-gnu
+        runs-on: ${{ matrix.settings.host }}
+        steps:
+            -   name: Checkout repository
+                uses: actions/checkout@v4.2.0
+            -   name: Install Linux-Dependencies
+                run: sudo apt update && sudo apt install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+            -   name: Install Rust
+                uses: dtolnay/rust-toolchain@stable
+            -   name: Install NodeJS
+                uses: actions/setup-node@v4.0.4
+                with:
+                    node-version: 18
+            -   name: Install Project-Dependencies
+                run: npm install
+            -   name: Build Project
+                run: npm run build
+            -   name: Publish Release Artifacts
+                uses: actions/upload-artifact@v4.4.0
+                with:
+                    name: linux
+                    path: /home/runner/work/tauri-test-v2/tauri-test-v2/src-tauri/target/release/app
+    
+    release-android:
+        needs: [test]
+        strategy:
+            fail-fast: true
+            matrix:
+                settings:
+                    -   host: ubuntu-latest
+                        target: aarch64-linux-android
+        runs-on: ${{ matrix.settings.host }}
+        steps:
+            -   name: Checkout repository
+                uses: actions/checkout@v4.2.0
+            -   name: Install Linux-Dependencies
+                run: sudo apt update && sudo apt install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+            
+            -   name: Install Android Studio
+                run: |
+                    sudo apt-get update
+                    sudo apt-get install -y wget unzip
+                    wget https://dl.google.com/dl/android/studio/ide-zips/2022.3.1.16/android-studio-2022.3.1.16-linux.tar.gz
+                    sudo tar -xzf android-studio-2022.3.1.16-linux.tar.gz -C /opt/
+                    export JAVA_HOME=/opt/android-studio/jbr
+            -   name: Install Android SDK Tools
+                run: |
+                    yes | /opt/android-studio/bin/sdkmanager --licenses
+                    /opt/android-studio/bin/sdkmanager --install "platform-tools" "build-tools;31.0.0" "platforms;android-31" "ndk;21.4.7075529" "cmdline-tools;latest"
+            -   name: Set ANDROID_HOME and NDK_HOME
+                run: |
+                    export ANDROID_HOME="$HOME/Android/Sdk"
+                    export NDK_HOME="$ANDROID_HOME/ndk/$(ls -1 $ANDROID_HOME/ndk)"
+                    echo "ANDROID_HOME is set to $ANDROID_HOME"
+                    echo "NDK_HOME is set to $NDK_HOME"
+
+            -   name: Install Java
+                uses: actions/setup-java@v4.4.0
+                with:
+                    java-version: 17
+                    distribution: oracle
+            -   name: Install Android
+                uses: android-actions/setup-android@v3.2.1
+            -   name: Install Rust
+                uses: dtolnay/rust-toolchain@stable
+            -   name: Setup Rust target
+                run: rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
+            -   name: Install NodeJS
+                uses: actions/setup-node@v4.0.4
+                with:
+                    node-version: 18
+            -   name: Install Project-Dependencies
+                run: npm install
+            -   name: Initialize Tauri Android
+                run: npm run tauri android init
+            -   name: Build Project
+                run: npm run tauri android build --apk
+            -   name: Publish Release Artifacts
+                uses: actions/upload-artifact@v4.4.0
+                with:
+                    name: android
+                    path: /home/runner/work/tauri-test-v2/tauri-test-v2/src-tauri/target/release/app.apk
+
+    publish:
+        needs: [release-windows, release-linux, release-android]
+        runs-on: ubuntu-latest
+        steps:
+            -   name: Checkout repository
+                uses: actions/checkout@v4.2.0
