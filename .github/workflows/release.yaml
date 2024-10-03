@@ -85,6 +85,19 @@ jobs:
                 uses: actions/checkout@v4.2.0
             -   name: Install Linux-Dependencies
                 run: sudo apt update && sudo apt install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+            
+            -   name: Install Android Studio
+                run: |
+                    sudo apt-get update
+                    sudo apt-get install -y wget unzip
+                    wget https://dl.google.com/dl/android/studio/ide-zips/2022.3.1.16/android-studio-2022.3.1.16-linux.tar.gz
+                    sudo tar -xzf android-studio-2022.3.1.16-linux.tar.gz -C /opt/
+                    export JAVA_HOME=/opt/android-studio/jbr
+            -   name: Install Android SDK Tools
+                run: |
+                    yes | /opt/android-studio/bin/sdkmanager --licenses
+                    /opt/android-studio/bin/sdkmanager --install "platform-tools" "build-tools;31.0.0" "platforms;android-31" "ndk;21.4.7075529" "cmdline-tools;latest"
+
             -   name: Install Java
                 uses: actions/setup-java@v4.4.0
                 with:
