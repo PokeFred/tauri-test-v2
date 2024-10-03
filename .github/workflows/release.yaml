@@ -97,6 +97,12 @@ jobs:
                 run: |
                     yes | /opt/android-studio/bin/sdkmanager --licenses
                     /opt/android-studio/bin/sdkmanager --install "platform-tools" "build-tools;31.0.0" "platforms;android-31" "ndk;21.4.7075529" "cmdline-tools;latest"
+            -   name: Set ANDROID_HOME and NDK_HOME
+                run: |
+                    export ANDROID_HOME="$HOME/Android/Sdk"
+                    export NDK_HOME="$ANDROID_HOME/ndk/$(ls -1 $ANDROID_HOME/ndk)"
+                    echo "ANDROID_HOME is set to $ANDROID_HOME"
+                    echo "NDK_HOME is set to $NDK_HOME"
 
             -   name: Install Java
                 uses: actions/setup-java@v4.4.0
@@ -108,7 +114,7 @@ jobs:
             -   name: Install Rust
                 uses: dtolnay/rust-toolchain@stable
             -   name: Setup Rust target
-                run: rustup target add aarch64-linux-android
+                run: rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
             -   name: Install NodeJS
                 uses: actions/setup-node@v4.0.4
                 with:
