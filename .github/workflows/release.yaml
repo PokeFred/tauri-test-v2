@@ -32,4 +32,4 @@ jobs:
                 uses: actions/upload-artifact@v4.4.0
                 with:
                     name: linux
-                    path: D:\a\tauri-test-v2\tauri-test-v2\src-tauri\target\release\tauri-test-v2
+                    path: /home/runner/work/tauri-test-v2/tauri-test-v2/src-tauri/target/release/app
