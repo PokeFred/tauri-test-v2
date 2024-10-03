@@ -12,8 +12,9 @@ jobs:
         steps:
           - name: Checkout repository
             uses: actions/checkout@v4.2.0
+
     release-windows:
-        needs: test
+        needs: [test]
         strategy:
             fail-fast: true
             matrix:
@@ -21,7 +22,6 @@ jobs:
                     -   host: windows-latest
                         target: x86_64-pc-windows-msvc
         runs-on: ${{ matrix.settings.host }}
-    
         steps:
             -   name: Checkout repository
                 uses: actions/checkout@v4.2.0
@@ -38,10 +38,11 @@ jobs:
             -   name: Publish Release Artifacts
                 uses: actions/upload-artifact@v4.4.0
                 with:
-                    name: windows-2
+                    name: windows
                     path: D:\a\tauri-test-v2\tauri-test-v2\src-tauri\target\release\app.exe
+
     release-linux:
-        needs: test
+        needs: [test]
         strategy:
             fail-fast: true
             matrix:
@@ -49,7 +50,6 @@ jobs:
                     -   host: ubuntu-latest
                         target: x86_64-unknown-linux-gnu
         runs-on: ${{ matrix.settings.host }}
-
         steps:
             -   name: Checkout repository
                 uses: actions/checkout@v4.2.0
@@ -70,10 +70,50 @@ jobs:
                 with:
                     name: linux
                     path: /home/runner/work/tauri-test-v2/tauri-test-v2/src-tauri/target/release/app
-    publish:
-        needs: [release-windows, release-linux]
-        runs-on: ubuntu-latest
+    
+    release-android:
+        needs: [test]
+        strategy:
+            fail-fast: true
+            matrix:
+                settings:
+                    -   host: ubuntu-latest
+                        target: aarch64-linux-android
+        runs-on: ${{ matrix.settings.host }}
+        steps:
+            -   name: Checkout repository
+                uses: actions/checkout@v4.2.0
+            -   name: Install Java
+                uses: actions/setup-java@v4.4.0
+                with:
+                    java-version: 17
+                    distribution: oracle
+            -   name: Install Android
+                uses: android-actions/setup-android@v3.2.1
+                with:
+                    api-level: 31
+                    build-tools: 31.0.0
+            -   name: Install Rust
+                uses: dtolnay/rust-toolchain@stable
+            -   name: Setup Rust target
+                run: rustup target add aarch64-linux-android
+            -   name: Install NodeJS
+                uses: actions/setup-node@v4.0.4
+                with:
+                    node-version: 18
+            -   name: Install Project-Dependencies
+                run: npm install
+            -   name: Build Project
+                run: npm run build
+            -   name: Publish Release Artifacts
+                uses: actions/upload-artifact@v4.4.0
+                with:
+                    name: android
+                    path: /home/runner/work/tauri-test-v2/tauri-test-v2/src-tauri/target/release/app.apk
 
+    publish:
+        needs: [release-windows, release-linux, release-android]
+        runs-on: ubuntu-latest
         steps:
             -   name: Checkout repository
                 uses: actions/checkout@v4.2.0
