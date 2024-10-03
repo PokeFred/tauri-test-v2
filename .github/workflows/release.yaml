@@ -29,7 +29,8 @@ jobs:
                     export JAVA_HOME=/opt/android-studio/jbr
             -   name: Install Android SDK Tools
                 run: |
-                    ls -a -lh /opt/
+                    ls -a -lh /opt/android-studio
+                    ls -a -lh /opt/android-studio/bin
                     /opt/android-studio/bin/sdkmanager --install "platform-tools" "build-tools;31.0.0" "platforms;android-31" "ndk;21.4.7075529" "cmdline-tools;latest"
             -   name: Set ANDROID_HOME and NDK_HOME
                 run: |
