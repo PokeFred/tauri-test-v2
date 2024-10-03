@@ -102,6 +102,8 @@ jobs:
                     node-version: 18
             -   name: Install Project-Dependencies
                 run: npm install
+            -   name: Initialize Tauri Android
+                run: npm run tauri android init
             -   name: Build Project
                 run: npm run tauri android build --apk
             -   name: Publish Release Artifacts
