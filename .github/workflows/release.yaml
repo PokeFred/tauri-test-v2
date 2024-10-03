@@ -17,10 +17,10 @@ jobs:
             -   name: Checkout repository
                 uses: actions/checkout@v4.2.0
             -   name: Install Rust
-                uses: dtolnay/rust-toolchain@stable
+                uses: actions-rs/toolchain@v1.0.6
                 with:
                     toolchain: stable
-                    target: x86_64-pc-windows-msvc
+                    profile: minimal
             -   name: Install NodeJS
                 uses: actions/setup-node@v4.0.4
                 with:
@@ -34,6 +34,31 @@ jobs:
                 with:
                     name: windows
                     path: D:\a\tauri-test-v2\tauri-test-v2\src-tauri\target\release\app.exe
+#    release-windows:
+#        strategy:
+#            fail-fast: true
+#            matrix:
+#                platform: [ubuntu-latest]
+#        runs-on: ${{ matrix.platform }}
+#    
+#        steps:
+#            -   name: Checkout repository
+#                uses: actions/checkout@v4.2.0
+#            -   name: Install Rust
+#                uses: dtolnay/rust-toolchain@stable
+#            -   name: Install NodeJS
+#                uses: actions/setup-node@v4.0.4
+#                with:
+#                    node-version: 18
+#            -   name: Install Project-Dependencies
+#                run: npm install
+#            -   name: Build Project
+#                run: npm run build
+#            -   name: Publish Release Artifacts
+#                uses: actions/upload-artifact@v4.4.0
+#                with:
+#                    name: windows
+#                    path: D:\a\tauri-test-v2\tauri-test-v2\src-tauri\target\release\app.exe
     release-linux:
         strategy:
             fail-fast: true
