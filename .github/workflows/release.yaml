@@ -6,7 +6,14 @@ on:
             - main
 
 jobs:
+    test:
+        runs-on: ubuntu-latest
+
+        steps:
+          - name: Checkout repository
+            uses: actions/checkout@v4.2.0
     release-windows:
+        needs: test
         strategy:
             fail-fast: true
             matrix:
@@ -14,34 +21,6 @@ jobs:
                     -   host: windows-latest
                         target: x86_64-pc-windows-msvc
         runs-on: ${{ matrix.settings.host }}
-    
-        steps:
-            -   name: Checkout repository
-                uses: actions/checkout@v4.2.0
-            -   name: Install Rust
-                uses: actions-rs/toolchain@v1.0.6
-                with:
-                    toolchain: stable
-                    profile: minimal
-            -   name: Install NodeJS
-                uses: actions/setup-node@v4.0.4
-                with:
-                    node-version: 18
-            -   name: Install Project-Dependencies
-                run: npm install
-            -   name: Build Project
-                run: npm run build
-            -   name: Publish Release Artifacts
-                uses: actions/upload-artifact@v4.4.0
-                with:
-                    name: windows
-                    path: D:\a\tauri-test-v2\tauri-test-v2\src-tauri\target\release\app.exe
-    release-windows-2:
-        strategy:
-            fail-fast: true
-            matrix:
-                platform: [windows-latest]
-        runs-on: ${{ matrix.platform }}
     
         steps:
             -   name: Checkout repository
@@ -62,11 +41,14 @@ jobs:
                     name: windows-2
                     path: D:\a\tauri-test-v2\tauri-test-v2\src-tauri\target\release\app.exe
     release-linux:
+        needs: test
         strategy:
             fail-fast: true
             matrix:
-                platform: [ubuntu-latest]
-        runs-on: ${{ matrix.platform }}
+                settings:
+                    -   host: ubuntu-latest
+                        target: x86_64-unknown-linux-gnu
+        runs-on: ${{ matrix.settings.host }}
 
         steps:
             -   name: Checkout repository
@@ -88,3 +70,10 @@ jobs:
                 with:
                     name: linux
                     path: /home/runner/work/tauri-test-v2/tauri-test-v2/src-tauri/target/release/app
+    publish:
+        needs: [release-windows, release-linux]
+        runs-on: ubuntu-latest
+
+        steps:
+            -   name: Checkout repository
+                uses: actions/checkout@v4.2.0
